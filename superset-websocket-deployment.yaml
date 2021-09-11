@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Customers\Commit\Kompose\kompose.exe convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: superset-websocket
+  name: superset-websocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: superset-websocket
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Customers\Commit\Kompose\kompose.exe convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: superset-websocket
+    spec:
+      containers:
+      - env:
+        - name: PORT
+          value: "8080"
+        - name: REDIS_HOST
+          value: redis
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_SSL
+          value: "false"
+        image: superset-websocket
+        imagePullPolicy: ""
+        name: superset-websocket
+        ports:
+        - containerPort: 8080
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}
