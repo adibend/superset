@@ -84,7 +84,13 @@ extraSecrets: {}
 
 # A dictionary of overrides to append at the end of superset_config.py - the name does not matter
 # WARNING: the order is not guaranteed
-configOverrides: 
+
+configOverrides:
+  feature_flags: |
+    FEATURE_FLAGS = {
+        "ENABLE_TEMPLATE_PROCESSING": True,
+    }
+
   # superset_config: |
   #   SQLALCHEMY_DATABASE_URI = 'postgresql://postadmin:NgRCTbd2WdtwPlr7eyZG@db-qa-01.cv7xzvrv270p.us-east-1.rds.amazonaws.com:5432/superset'  
   #  extend_timeout: |
@@ -127,7 +133,7 @@ extraConfigMountPath: "/app/configs"
 image:
   repository: 596711431307.dkr.ecr.us-east-1.amazonaws.com/qa/superset
   tag: dev-latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 imagePullSecrets: []
 
@@ -159,7 +165,7 @@ ingress:
   path: /*
   pathType: ImplementationSpecific
   hosts:
-    - superset.iot.watergen.com
+    - "@@HOST_NAME@@"
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -187,16 +193,22 @@ supersetNode:
   connections:
     redis_host: '{{ template "superset.fullname" . }}-redis-headless'
     redis_port: "6379"
-    db_host: '{{ template "superset.fullname" . }}-postgresql'
+    # db_host: '{{ template "superset.fullname" . }}-postgresql'
+    # db_port: "5432"
+    # db_user: superset
+    # db_pass: superset
+    # db_name: superset
+    db_host: "@@DB_HOST@@"
     db_port: "5432"
-    db_user: superset
-    db_pass: superset
-    db_name: superset
-  forceReload: false # If true, forces deployment to reload on each upgrade
+    db_user: "@@DB_USER@@"
+    # db_pass: "NgRCTbd2WdtwPlr7eyZG"
+    db_pass: "@@DB_PASS@@"    
+    db_name: superset  
+  forceReload: true # If true, forces deployment to reload on each upgrade
   initContainers:
     - name: wait-for-postgres
       image: busybox:latest
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       envFrom:
         - secretRef:
             name: '{{ tpl .Values.envFromSecret . }}'
@@ -213,11 +225,11 @@ supersetWorker:
     - "/bin/sh"
     - "-c"
     - ". {{ .Values.configMountPath }}/superset_bootstrap.sh; celery --app=superset.tasks.celery_app:app worker"
-  forceReload: false # If true, forces deployment to reload on each upgrade
+  forceReload: true # If true, forces deployment to reload on each upgrade
   initContainers:
     - name: wait-for-postgres
       image: busybox:latest
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       envFrom:
         - secretRef:
             name: '{{ tpl .Values.envFromSecret . }}'
@@ -236,11 +248,11 @@ supersetCeleryBeat:
     - "/bin/sh"
     - "-c"
     - ". {{ .Values.configMountPath }}/superset_bootstrap.sh; celery --app=superset.tasks.celery_app:app beat --pidfile /tmp/celerybeat.pid --schedule /tmp/celerybeat-schedule"
-  forceReload: false # If true, forces deployment to reload on each upgrade
+  forceReload: true # If true, forces deployment to reload on each upgrade
   initContainers:
     - name: wait-for-postgres
       image: busybox:latest
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       envFrom:
         - secretRef:
             name: '{{ tpl .Values.envFromSecret . }}'
@@ -279,7 +291,7 @@ init:
   initContainers:
     - name: wait-for-postgres
       image: busybox:latest
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       envFrom:
         - secretRef:
             name: '{{ tpl .Values.envFromSecret . }}'
@@ -344,7 +356,7 @@ postgresql:
   persistence:
     ##
     ## Enable PostgreSQL persistence using Persistent Volume Claims.
-    enabled: true
+    enabled: false
     ##
     ## Persistant class
     # storageClass: classname
@@ -359,7 +371,7 @@ redis:
   ##
   ## Use the redis chart dependency.
   ## Set to false if bringing your own redis.
-  enabled: false
+  enabled: true
   usePassword: false
   ##
   ## The name of an existing secret that contains the redis password.
