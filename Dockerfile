@@ -1,2 +1,5 @@
-FROM 596711431307.dkr.ecr.us-east-1.amazonaws.com/qa/superset:dev-latest
-COPY ./superset_config.py /app/pythonpath
+FROM apache/superset
+WORKDIR /app
+ENV SUPERSET_CONFIG_PATH /app/superset_config.py
+COPY ./superset_config.py /app
+COPY ./superset/user_package/ /app/superset/user_package/
